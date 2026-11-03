@@ -1,0 +1,1302 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillStudio | Student Dashboard</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --pink: #ec78a9;
+            --dark-pink: #d95791;
+            --light-pink: #fff0f6;
+            --background: #fff8fb;
+            --text: #39313a;
+            --muted: #827782;
+            --white: #ffffff;
+            --border: #f2e5ec;
+        }
+
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: var(--background);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        button, a {
+            font: inherit;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: 245px;
+            background: white;
+            border-right: 1px solid var(--border);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--dark-pink);
+            margin-bottom: 8px;
+        }
+
+        .logo span {
+            color: var(--text);
+        }
+
+        .tagline {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 42px;
+        }
+
+        .nav-label {
+            color: #aa9eaa;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            margin: 0 0 15px 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 14px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #776d78;
+            transition: 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: var(--light-pink);
+            color: var(--dark-pink);
+        }
+
+        .nav-icon {
+            font-size: 19px;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            background: #fff1f7;
+            padding: 18px;
+            border-radius: 16px;
+        }
+
+        .sidebar-bottom p {
+            font-size: 12px;
+            line-height: 1.7;
+            color: var(--muted);
+            margin-top: 7px;
+        }
+
+        /* MAIN CONTENT */
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 32px 38px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 35px;
+        }
+
+        .page-label {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .topbar h2 {
+            font-size: 23px;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .avatar {
+            height: 43px;
+            width: 43px;
+            border-radius: 50%;
+            background: #fbd4e5;
+            color: #b84379;
+            display: grid;
+            place-items: center;
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .profile-name {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .profile-role {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+
+        /* WELCOME BANNER */
+
+        .welcome {
+            background: linear-gradient(120deg, #f9b6d3, #f6d5e8);
+            border-radius: 22px;
+            padding: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .welcome-text {
+            max-width: 590px;
+        }
+
+        .welcome-tag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.65);
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #9e3e70;
+            margin-bottom: 15px;
+        }
+
+        .welcome h1 {
+            font-size: clamp(25px, 3vw, 35px);
+            line-height: 1.25;
+            margin-bottom: 12px;
+        }
+
+        .welcome p {
+            color: #714b61;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+
+        .welcome-art {
+            font-size: 90px;
+            flex-shrink: 0;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-9px);
+            }
+        }
+
+        /* SECTION HEADINGS */
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin: 30px 0 17px;
+        }
+
+        .section-heading h2 {
+            font-size: 19px;
+        }
+
+        .section-heading p {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        /* FEATURE CARDS */
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .feature-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 23px;
+            display: flex;
+            flex-direction: column;
+            min-height: 250px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(176, 88, 131, 0.09);
+        }
+
+        .feature-icon {
+            width: 49px;
+            height: 49px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            font-size: 24px;
+            margin-bottom: 19px;
+        }
+
+        .icon-pink {
+            background: #ffe6f0;
+        }
+
+        .icon-purple {
+            background: #f0e9ff;
+        }
+
+        .icon-peach {
+            background: #fff0e4;
+        }
+
+        .feature-card h3 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .card-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            margin-top: auto;
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: var(--light-pink);
+            color: var(--dark-pink);
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .card-button:hover {
+            background: #fbd5e5;
+        }
+
+        .card-button.primary {
+            background: var(--pink);
+            color: white;
+        }
+
+        .card-button.primary:hover {
+            background: var(--dark-pink);
+        }
+
+        /* LOWER PANELS */
+
+        .lower-grid {
+            display: grid;
+            grid-template-columns: 1.15fr 1fr;
+            gap: 18px;
+            margin-top: 25px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 24px;
+            min-width: 0;
+        }
+
+        .panel h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .panel-subtitle {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .status-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 15px 0;
+            border-bottom: 1px solid #f5edf1;
+        }
+
+        .status-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .status-icon {
+            width: 37px;
+            height: 37px;
+            flex-shrink: 0;
+            display: grid;
+            place-items: center;
+            background: var(--light-pink);
+            border-radius: 11px;
+        }
+
+        .status-info {
+            flex: 1;
+        }
+
+        .status-info h4 {
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .status-info p {
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .status-pill {
+            font-size: 10px;
+            padding: 5px 8px;
+            border-radius: 20px;
+            background: #f6f0f4;
+            color: #847584;
+            white-space: nowrap;
+        }
+
+        .status-pill.online {
+            background: #e4f7e9;
+            color: #2b8045;
+        }
+
+        .recommendation-box {
+            padding: 17px;
+            background: #fff3f8;
+            border-radius: 13px;
+            margin-top: 15px;
+        }
+
+        .recommendation-box h4 {
+            font-size: 13px;
+            margin-bottom: 7px;
+        }
+
+        .recommendation-box p {
+            font-size: 12px;
+            line-height: 1.8;
+            color: #776775;
+        }
+
+        /* ASSESSMENT HISTORY */
+
+        .history-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .history-controls input {
+            flex: 1;
+            min-width: 160px;
+            padding: 11px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            font-size: 13px;
+        }
+
+        .history-controls input:focus {
+            border-color: var(--pink);
+        }
+
+        .history-controls button {
+            padding: 11px 15px;
+            border: none;
+            border-radius: 10px;
+            background: var(--pink);
+            color: white;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .history-controls button:hover {
+            background: var(--dark-pink);
+        }
+
+        .history-controls button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        .history-message {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .history-attempt {
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 17px;
+            margin-top: 13px;
+        }
+
+        .attempt-topline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .attempt-score {
+            color: var(--dark-pink);
+            font-size: 25px;
+            font-weight: 800;
+        }
+
+        .attempt-date {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .topic-summary {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+            margin: 8px 0;
+            overflow-wrap: anywhere;
+        }
+
+        .history-attempt h4 {
+            font-size: 12px;
+            margin: 15px 0 10px;
+        }
+
+        .topic-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .topic-row {
+            display: grid;
+            grid-template-columns: 95px minmax(40px, 1fr) 42px;
+            align-items: center;
+            gap: 9px;
+            font-size: 11px;
+        }
+
+        .topic-track {
+            height: 8px;
+            background: #f5edf1;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .topic-fill {
+            height: 100%;
+            background: var(--pink);
+            border-radius: 20px;
+        }
+
+        .topic-fill.low {
+            background: #e9a15e;
+        }
+
+        .topic-percent {
+            text-align: right;
+            color: var(--muted);
+        }
+
+        .history-empty {
+            border: 1px dashed #e9d5e0;
+            background: #fffafd;
+            padding: 18px;
+            border-radius: 12px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-wrap: anywhere;
+        }
+
+        .recommendation-list {
+            padding-left: 18px;
+            margin-top: 10px;
+        }
+
+        .recommendation-list li {
+            margin-bottom: 7px;
+        }
+
+        footer {
+            text-align: center;
+            color: #aa9eaa;
+            font-size: 11px;
+            padding: 30px 0 10px;
+        }
+
+        /* RESPONSIVE DESIGN */
+
+        @media (max-width: 1100px) {
+            .feature-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .lower-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 760px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                padding: 20px;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+            }
+
+            .tagline {
+                margin-bottom: 20px;
+            }
+
+            .sidebar-bottom {
+                margin-top: 20px;
+            }
+
+            .main {
+                padding: 22px 16px;
+            }
+
+            .welcome {
+                padding: 24px;
+            }
+
+            .welcome-art {
+                display: none;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .topbar {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <div class="logo">Skill<span>Studio</span></div>
+        <p class="tagline">Your career journey starts here</p>
+
+        <p class="nav-label">MENU</p>
+
+        <a href="dashboard.html" class="nav-link active">
+            <span class="nav-icon">⌂</span>
+            Dashboard
+        </a>
+
+        <a href="index.html" class="nav-link">
+            <span class="nav-icon">✎</span>
+            Employability Assessment
+        </a>
+
+        <a href="placement.html" class="nav-link">
+            <span class="nav-icon">▥</span>
+            Placement Predictor
+        </a>
+
+        <!-- NEW: TOPIC PRACTICE NAVIGATION -->
+        <a href="practice.html" class="nav-link">
+            <span class="nav-icon">🎯</span>
+            Topic Practice Tests
+        </a>
+
+        <div class="sidebar-bottom">
+            <strong>Keep moving forward ✨</strong>
+            <p>
+                Every assessment is a step toward understanding your
+                strengths and improving your career readiness.
+            </p>
+        </div>
+    </aside>
+
+    <!-- MAIN DASHBOARD -->
+    <main class="main">
+
+        <header class="topbar">
+            <div>
+                <p class="page-label">STUDENT WORKSPACE</p>
+                <h2>Dashboard</h2>
+            </div>
+
+            <div class="profile">
+                <div class="avatar" id="avatar">S</div>
+                <div>
+                    <p class="profile-name" id="profileName">Student</p>
+                    <p class="profile-role">Student</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- WELCOME BANNER -->
+        <section class="welcome">
+            <div class="welcome-text">
+                <span class="welcome-tag">YOUR CAREER JOURNEY</span>
+
+                <h1>
+                    Welcome back, <span id="welcomeName">Student</span>!
+                </h1>
+
+                <p>
+                    Understand your skills, explore your career readiness,
+                    and identify the areas you can improve. Use your
+                    dashboard to keep track of your progress.
+                </p>
+            </div>
+
+            <div class="welcome-art">🌸</div>
+        </section>
+
+        <!-- FEATURE CARDS -->
+        <section>
+            <div class="section-heading">
+                <div>
+                    <h2>Your Career Tools</h2>
+                    <p>Choose a tool to continue your journey.</p>
+                </div>
+            </div>
+
+            <div class="feature-grid">
+
+                <!-- EXISTING: EMPLOYABILITY ASSESSMENT -->
+                <article class="feature-card">
+                    <div class="feature-icon icon-pink">📝</div>
+                    <h3>Employability Assessment</h3>
+
+                    <p>
+                        Answer questions about programming, DSA, operating
+                        systems, networks, security, and other employability
+                        topics. Review your score and topic-wise performance.
+                    </p>
+
+                    <button
+                        class="card-button primary"
+                        onclick="window.location.href='index.html'">
+                        Start Assessment →
+                    </button>
+                </article>
+
+                <!-- EXISTING: PLACEMENT PREDICTOR -->
+                <article class="feature-card">
+                    <div class="feature-icon icon-purple">📊</div>
+                    <h3>Placement Predictor</h3>
+
+                    <p>
+                        Enter your academic details and work experience to
+                        receive a placement prediction from the trained model.
+                    </p>
+
+                    <button
+                        class="card-button"
+                        onclick="window.location.href='placement.html'">
+                        Open Predictor →
+                    </button>
+                </article>
+
+                <!-- NEW: TOPIC PRACTICE TESTS -->
+                <article class="feature-card">
+                    <div class="feature-icon icon-peach">🎯</div>
+                    <h3>Topic Practice Tests</h3>
+
+                    <p>
+                        Choose a topic and practise with five randomly
+                        selected questions. Review your score and track
+                        your performance to identify areas for improvement.
+                        Practice results are separate from your placement
+                        prediction.
+                    </p>
+
+                    <button
+                        class="card-button primary"
+                        onclick="window.location.href='practice.html'">
+                        Practise a Topic →
+                    </button>
+                </article>
+
+                <!-- EXISTING: STUDY PRIORITIES -->
+                <article class="feature-card">
+                    <div class="feature-icon icon-peach">📚</div>
+                    <h3>Study Priorities</h3>
+
+                    <p>
+                        Use your latest assessment results to find topics that
+                        may need more practice and plan what to revise next.
+                    </p>
+
+                    <button
+                        class="card-button"
+                        onclick="document.getElementById('historySection').scrollIntoView({behavior:'smooth'})">
+                        View My Progress →
+                    </button>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- LOWER PANELS -->
+        <section class="lower-grid">
+
+            <!-- BACKEND STATUS -->
+            <div class="panel">
+                <h3>Assessment System Status</h3>
+
+                <p class="panel-subtitle">
+                    This status checks whether the assessment backend is
+                    reachable from your browser.
+                </p>
+
+                <div class="status-row">
+                    <div class="status-icon">⚙️</div>
+
+                    <div class="status-info">
+                        <h4>FastAPI Backend</h4>
+                        <p id="backendMessage">Checking connection...</p>
+                    </div>
+
+                    <span class="status-pill" id="backendStatus">
+                        Checking
+                    </span>
+                </div>
+
+                <div class="status-row">
+                    <div class="status-icon">📚</div>
+
+                    <div class="status-info">
+                        <h4>Assessment Question Bank</h4>
+                        <p>
+                            Questions are supplied by the backend question bank.
+                        </p>
+                    </div>
+
+                    <span class="status-pill">API</span>
+                </div>
+
+                <div class="recommendation-box">
+                    <h4>Personalised Study Guidance</h4>
+
+                    <p id="recommendationMessage">
+                        Load your assessment history to see your topic-wise
+                        performance and suggested study priorities.
+                    </p>
+                </div>
+            </div>
+
+            <!-- ASSESSMENT HISTORY -->
+            <div class="panel" id="historySection">
+                <h3>Assessment History</h3>
+
+                <p class="panel-subtitle">
+                    View completed assessments, your scores, topic performance,
+                    strengths, and areas to practise.
+                </p>
+
+                <div class="history-controls">
+                    <input
+                        type="text"
+                        id="studentIdInput"
+                        placeholder="Your account ID"
+                        aria-label="Student ID"
+                        readonly>
+
+                    <button type="button" id="loadHistoryButton">
+                        Load History
+                    </button>
+                </div>
+
+                <p class="history-message" id="historyMessage">
+                    Checking your login session...
+                </p>
+
+                <div id="historyResults">
+                    <div class="history-empty">
+                        Your completed assessments will appear here.
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <footer>
+            SkillStudio · Student Dashboard
+        </footer>
+
+    </main>
+</div>
+
+<script>
+    const API = "http://127.0.0.1:8000";
+
+    // 1. Load the saved display name.
+    const savedName = localStorage.getItem("studentName");
+
+    if (savedName && savedName.trim()) {
+        const name = savedName.trim();
+
+        document.getElementById("profileName").textContent = name;
+        document.getElementById("welcomeName").textContent = name;
+        document.getElementById("avatar").textContent =
+            name.charAt(0).toUpperCase();
+    }
+
+    // 2. Check whether the backend is running.
+    async function checkBackend() {
+        const message = document.getElementById("backendMessage");
+        const status = document.getElementById("backendStatus");
+
+        try {
+            const response = await fetch(
+                `${API}/assessment/bank-info`,
+                {
+                    credentials: "include"
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Backend request failed");
+            }
+
+            const data = await response.json();
+
+            message.textContent =
+                "Connected. The assessment bank contains " +
+                data.total_questions + " questions.";
+
+            status.textContent = "Online";
+            status.classList.add("online");
+
+        } catch (error) {
+            message.textContent =
+                "Backend unavailable. Start your FastAPI server.";
+
+            status.textContent = "Offline";
+            status.classList.remove("online");
+        }
+    }
+
+    // 3. Create elements safely using textContent.
+    function addTextElement(parent, tag, className, text) {
+        const element = document.createElement(tag);
+
+        if (className) {
+            element.className = className;
+        }
+
+        element.textContent = String(text ?? "");
+        parent.appendChild(element);
+
+        return element;
+    }
+
+    // 4. Display an empty state or an error message.
+    function showEmptyHistory(message) {
+        const results = document.getElementById("historyResults");
+
+        results.replaceChildren();
+
+        addTextElement(
+            results,
+            "div",
+            "history-empty",
+            message
+        );
+    }
+
+    // 5. Render assessment history.
+    function renderHistory(data) {
+        const results = document.getElementById("historyResults");
+
+        results.replaceChildren();
+
+        const attempts = Array.isArray(data.attempts)
+            ? data.attempts
+            : [];
+
+        if (attempts.length === 0) {
+            showEmptyHistory(
+                "No completed assessments were found for your account. " +
+                "Finish an assessment and load history again."
+            );
+
+            document.getElementById("recommendationMessage").textContent =
+                "No completed assessment was found yet. Take the employability " +
+                "assessment and load history again.";
+
+            return;
+        }
+
+        const summary = document.createElement("div");
+        summary.className = "history-empty";
+
+        summary.textContent =
+            "Found " + attempts.length +
+            " completed assessment attempt" +
+            (attempts.length === 1 ? "" : "s") +
+            ". Showing newest first.";
+
+        results.appendChild(summary);
+
+        attempts.forEach(function(attempt, index) {
+            const card = document.createElement("article");
+            card.className = "history-attempt";
+
+            const top = document.createElement("div");
+            top.className = "attempt-topline";
+
+            addTextElement(
+                top,
+                "div",
+                "attempt-score",
+                (Number(attempt.percentage) || 0) + "%"
+            );
+
+            addTextElement(
+                top,
+                "div",
+                "attempt-date",
+                attempt.started_at
+                    ? "Started: " + attempt.started_at
+                    : "Assessment attempt " + (index + 1)
+            );
+
+            card.appendChild(top);
+
+            addTextElement(
+                card,
+                "p",
+                "topic-summary",
+                "Score: " + (attempt.score ?? 0) +
+                " out of " + (attempt.total_questions ?? 0) +
+                " questions"
+            );
+
+            // Topic-wise performance.
+            const topics = Array.isArray(attempt.topic_results)
+                ? attempt.topic_results
+                : [];
+
+            if (topics.length > 0) {
+                addTextElement(
+                    card,
+                    "h4",
+                    "",
+                    "Topic-wise performance"
+                );
+
+                const topicList = document.createElement("div");
+                topicList.className = "topic-list";
+
+                topics.forEach(function(topic) {
+                    const row = document.createElement("div");
+                    row.className = "topic-row";
+
+                    addTextElement(
+                        row,
+                        "span",
+                        "",
+                        topic.topic || "Topic"
+                    );
+
+                    const track = document.createElement("div");
+                    track.className = "topic-track";
+
+                    const fill = document.createElement("div");
+
+                    const percentage = Math.max(
+                        0,
+                        Math.min(
+                            100,
+                            Number(topic.percentage) || 0
+                        )
+                    );
+
+                    fill.className =
+                        "topic-fill" +
+                        (percentage < 50 ? " low" : "");
+
+                    fill.style.width = percentage + "%";
+
+                    track.appendChild(fill);
+                    row.appendChild(track);
+
+                    addTextElement(
+                        row,
+                        "span",
+                        "topic-percent",
+                        percentage + "%"
+                    );
+
+                    topicList.appendChild(row);
+                });
+
+                card.appendChild(topicList);
+            }
+
+            // Strengths and weaknesses.
+            const strengths = Array.isArray(attempt.strengths)
+                ? attempt.strengths
+                : [];
+
+            const weaknesses = Array.isArray(attempt.weaknesses)
+                ? attempt.weaknesses
+                : [];
+
+            addTextElement(
+                card,
+                "p",
+                "topic-summary",
+                "Strengths: " +
+                (
+                    strengths.length
+                        ? strengths.join(", ")
+                        : "Keep practising to identify strong topics."
+                )
+            );
+
+            addTextElement(
+                card,
+                "p",
+                "topic-summary",
+                "Needs practice: " +
+                (
+                    weaknesses.length
+                        ? weaknesses.join(", ")
+                        : "No topics currently fall below the weakness threshold."
+                )
+            );
+
+            results.appendChild(card);
+        });
+
+        // Study guidance from the latest assessment.
+        const latest = attempts[0];
+
+        const weaknesses = Array.isArray(latest.weaknesses)
+            ? latest.weaknesses
+            : [];
+
+        const recommendations = Array.isArray(latest.recommendations)
+            ? latest.recommendations
+            : [];
+
+        const recommendationMessage =
+            document.getElementById("recommendationMessage");
+
+        recommendationMessage.textContent = weaknesses.length
+            ? "Your latest assessment suggests focusing on: " +
+              weaknesses.join(", ") +
+              ". Review these topics and take another assessment to track progress."
+            : "Your latest results do not flag any topics as major weaknesses. " +
+              "Keep practising and take another assessment to monitor progress.";
+
+        if (recommendations.length > 0) {
+            const list = document.createElement("ul");
+            list.className = "recommendation-list";
+
+            recommendations.forEach(function(item) {
+                let recommendationText;
+
+                if (typeof item === "string") {
+                    recommendationText = item;
+                } else if (item && item.topic) {
+                    recommendationText = "Revise " + item.topic;
+                } else {
+                    recommendationText = JSON.stringify(item);
+                }
+
+                addTextElement(
+                    list,
+                    "li",
+                    "",
+                    recommendationText
+                );
+            });
+
+            recommendationMessage.appendChild(
+                document.createElement("br")
+            );
+
+            recommendationMessage.appendChild(list);
+        }
+    }
+
+    // 6. Load history using the authenticated account.
+    async function loadAssessmentHistory() {
+        const input = document.getElementById("studentIdInput");
+        const message = document.getElementById("historyMessage");
+        const button = document.getElementById("loadHistoryButton");
+
+        button.disabled = true;
+        button.textContent = "Loading...";
+        message.textContent = "Checking your login session...";
+
+        try {
+            // Get the currently logged-in user.
+            const authResponse = await fetch(
+                `${API}/auth/me`,
+                {
+                    method: "GET",
+                    credentials: "include"
+                }
+            );
+
+            if (!authResponse.ok) {
+                throw new Error(
+                    "Your login session has expired. Please sign in again."
+                );
+            }
+
+            const authData = await authResponse.json();
+            const user = authData.user || authData;
+
+            const studentId =
+                user.student_id ??
+                user.studentId ??
+                user.id ??
+                user.user_id;
+
+            if (studentId === undefined || studentId === null) {
+                throw new Error(
+                    "Your account ID was not found in the /auth/me response."
+                );
+            }
+
+            input.value = String(studentId);
+            message.textContent = "Loading your assessment history...";
+
+            // Request this account's assessment history.
+            const historyResponse = await fetch(
+                `${API}/assessment/history/${encodeURIComponent(String(studentId))}`,
+                {
+                    method: "GET",
+                    credentials: "include"
+                }
+            );
+
+            const data = await historyResponse.json();
+
+            if (!historyResponse.ok) {
+                throw new Error(
+                    data.detail || "Unable to retrieve assessment history."
+                );
+            }
+
+            renderHistory(data);
+
+            const totalAttempts =
+                data.total_attempts ?? data.attempts?.length ?? 0;
+
+            message.textContent =
+                "Loaded " + totalAttempts + " assessment attempt(s).";
+
+            localStorage.setItem(
+                "assessmentStudentId",
+                String(studentId)
+            );
+
+        } catch (error) {
+            message.textContent = error.message;
+            showEmptyHistory(error.message);
+
+            if (
+                error.message.toLowerCase().includes("session") ||
+                error.message.toLowerCase().includes("sign in")
+            ) {
+                setTimeout(function() {
+                    window.location.href = "login.html";
+                }, 1500);
+            }
+
+        } finally {
+            button.disabled = false;
+            button.textContent = "Load History";
+        }
+    }
+
+    // 7. Load history when the button is clicked.
+    document
+        .getElementById("loadHistoryButton")
+        .addEventListener("click", loadAssessmentHistory);
+
+    // 8. Check backend and load the user's history on page load.
+    checkBackend();
+    loadAssessmentHistory();
+</script>
+
+</body>
+</html>
+```

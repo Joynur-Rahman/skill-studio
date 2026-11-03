@@ -1,0 +1,333 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillStudio | Topic Practice</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #fff7fb;
+    color: #44313e;
+}
+
+main {
+    max-width: 850px;
+    margin: 35px auto;
+    padding: 22px;
+}
+
+h1 { color: #b34e82; }
+
+.panel {
+    background: white;
+    border: 1px solid #f0d8e5;
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+input, select, button {
+    padding: 11px;
+    border-radius: 8px;
+    border: 1px solid #e7c6d8;
+    font-size: 15px;
+    margin: 5px 0;
+}
+
+button {
+    background: #c75b91;
+    color: white;
+    border: 0;
+    cursor: pointer;
+}
+
+button:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+.question {
+    padding: 15px 0;
+    border-bottom: 1px solid #f2e4ec;
+}
+
+.option {
+    display: block;
+    padding: 8px;
+}
+
+.muted { color: #806c7a; }
+
+.topic-result {
+    padding: 12px;
+    margin: 8px 0;
+    background: #fff7fb;
+    border-radius: 8px;
+}
+</style>
+</head>
+
+<body>
+<main>
+    <h1>SkillStudio 🌸</h1>
+    <p class="muted">
+        Topic-wise practice — learn at your own pace.
+        Results are for self-assessment only.
+    </p>
+
+    <section class="panel">
+        <h2>Choose a topic</h2>
+
+        <label for="studentId">Student ID</label><br>
+        <input id="studentId" placeholder="Enter your student ID"><br>
+
+        <label for="topic">Practice topic</label><br>
+        <select id="topic">
+            <option value="">Loading topics...</option>
+        </select><br>
+
+        <p id="topicInfo" class="muted"></p>
+        <button id="startButton" onclick="startTest()">
+            Start 5-question test
+        </button>
+        <p id="message" role="status"></p>
+    </section>
+
+    <section id="quiz" class="panel" hidden>
+        <h2 id="quizTitle">Practice test</h2>
+        <form id="quizForm">
+            <div id="questions"></div>
+            <button type="submit">Submit test</button>
+        </form>
+    </section>
+
+    <section id="result" class="panel" hidden>
+        <h2>Your result</h2>
+        <div id="resultContent"></div>
+        <button onclick="startTest()">Try this topic again</button>
+    </section>
+
+    <section class="panel">
+        <h2>My practice history</h2>
+        <button onclick="loadHistory()">Refresh history</button>
+        <div id="history" class="muted">Enter your student ID to view history.</div>
+    </section>
+
+    <p><a href="dashboard.html">← Back to dashboard</a></p>
+</main>
+
+<script>
+const API = "http://127.0.0.1:8000";
+let currentAttempt = null;
+let currentQuestions = [];
+
+async function loadTopics() {
+    const select = document.getElementById("topic");
+    const info = document.getElementById("topicInfo");
+
+    try {
+        const response = await fetch(`${API}/practice/topics`);
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.detail || "Could not load topics.");
+
+        select.replaceChildren();
+
+        data.topics.forEach(topic => {
+            const option = document.createElement("option");
+            option.value = topic.name;
+            option.textContent = topic.name +
+                (topic.ready ? "" : ` (${topic.question_count}/20 questions)`);
+            option.disabled = !topic.ready;
+            select.appendChild(option);
+        });
+
+        if (!data.topics.some(t => t.ready)) {
+            info.textContent =
+                "The question bank needs 20 questions per topic before tests can start.";
+        } else {
+            info.textContent =
+                "Each test randomly selects five questions from a bank of 20.";
+        }
+    } catch (error) {
+        info.textContent = error.message;
+    }
+}
+
+async function startTest() {
+    const studentId = document.getElementById("studentId").value.trim();
+    const topic = document.getElementById("topic").value;
+    const message = document.getElementById("message");
+    const button = document.getElementById("startButton");
+
+    if (!studentId || !topic) {
+        message.textContent = "Enter your student ID and choose a topic.";
+        return;
+    }
+
+    button.disabled = true;
+    message.textContent = "Preparing your questions...";
+
+    try {
+        const response = await fetch(`${API}/practice/start`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({student_id: studentId, topic})
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Could not start test.");
+
+        currentAttempt = data.attempt_id;
+        currentQuestions = data.questions;
+
+        document.getElementById("quizTitle").textContent =
+            `${data.topic} practice test`;
+
+        const container = document.getElementById("questions");
+        container.replaceChildren();
+
+        data.questions.forEach((q, index) => {
+            const block = document.createElement("div");
+            block.className = "question";
+
+            const heading = document.createElement("p");
+            heading.textContent = `${index + 1}. ${q.question}`;
+            block.appendChild(heading);
+
+            q.options.forEach((option, optionIndex) => {
+                const label = document.createElement("label");
+                label.className = "option";
+
+                const radio = document.createElement("input");
+                radio.type = "radio";
+                radio.name = String(q.id);
+                radio.value = String(optionIndex);
+                radio.required = true;
+
+                label.append(radio, document.createTextNode(" " + option));
+                block.appendChild(label);
+            });
+
+            container.appendChild(block);
+        });
+
+        document.getElementById("result").hidden = true;
+        document.getElementById("quiz").hidden = false;
+        message.textContent = "";
+    } catch (error) {
+        message.textContent = error.message;
+    } finally {
+        button.disabled = false;
+    }
+}
+
+document.getElementById("quizForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const answers = {};
+    for (const q of currentQuestions) {
+        const selected = document.querySelector(
+            `input[name="${q.id}"]:checked`
+        );
+
+        if (!selected) {
+            alert("Please answer all five questions.");
+            return;
+        }
+
+        answers[q.id] = Number(selected.value);
+    }
+
+    try {
+        const response = await fetch(`${API}/practice/finish`, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                attempt_id: currentAttempt,
+                answers
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Could not submit test.");
+
+        document.getElementById("quiz").hidden = true;
+        document.getElementById("result").hidden = false;
+
+        const content = document.getElementById("resultContent");
+        content.replaceChildren();
+
+        const score = document.createElement("h3");
+        score.textContent =
+            `${data.score}/${data.total_questions} correct — ${data.percentage}%`;
+
+        const feedback = document.createElement("p");
+        feedback.textContent = data.feedback;
+
+        const note = document.createElement("p");
+        note.className = "muted";
+        note.textContent = data.purpose;
+
+        content.append(score, feedback, note);
+        await loadHistory();
+    } catch (error) {
+        alert(error.message);
+    }
+});
+
+async function loadHistory() {
+    const studentId = document.getElementById("studentId").value.trim();
+    const container = document.getElementById("history");
+
+    if (!studentId) {
+        container.textContent = "Enter your student ID first.";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${API}/practice/history/${encodeURIComponent(studentId)}`
+        );
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.detail || "Could not load history.");
+
+        container.replaceChildren();
+
+        if (!data.history.length) {
+            container.textContent = "No practice tests completed yet.";
+            return;
+        }
+
+        data.history.forEach(item => {
+            const card = document.createElement("div");
+            card.className = "topic-result";
+
+            card.textContent =
+                `${item.topic}: ${item.score}/${item.total} ` +
+                `(${item.percentage}%) — ${item.started_at}`;
+
+            container.appendChild(card);
+        });
+    } catch (error) {
+        container.textContent = error.message;
+    }
+}
+
+document.getElementById("topic").addEventListener("change", () => {
+    const topic = document.getElementById("topic").value;
+    document.getElementById("topicInfo").textContent =
+        topic ? `You'll receive five random questions from ${topic}.` : "";
+});
+
+loadTopics();
+</script>
+</body>
+</html>

@@ -1,0 +1,480 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SkillStudio | Student Login</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap"
+          rel="stylesheet">
+
+    <style>
+        :root {
+            --pink: #d98ba7;
+            --pink-dark: #b96d8b;
+            --pink-light: #f5e5eb;
+            --background: #faf6f7;
+            --white: #ffffff;
+            --text: #493942;
+            --muted: #8d7c85;
+            --border: #eadce2;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 25px 16px;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 15%, #f4e3ea, transparent 40%),
+                radial-gradient(circle at 85% 85%, #f1e6eb, transparent 40%),
+                var(--background);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 38px;
+            background: var(--white);
+            border: 1px solid #f0e5e9;
+            border-radius: 22px;
+            box-shadow: 0 15px 45px rgba(102, 64, 81, 0.08);
+            animation: appear 0.5s ease;
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .brand {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            color: var(--pink-dark);
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: var(--pink-light);
+            color: var(--pink-dark);
+            font-size: 21px;
+        }
+
+        h1 {
+            margin-top: 27px;
+            text-align: center;
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 600;
+            color: #59414c;
+        }
+
+        .subtitle {
+            margin: 12px 0 28px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .student-label {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 25px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #fcf8fa;
+            color: var(--pink-dark);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .field {
+            margin-bottom: 19px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #65505a;
+        }
+
+        input:not([type="checkbox"]) {
+            width: 100%;
+            height: 47px;
+            padding: 0 14px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: #fdfafb;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        input::placeholder {
+            color: #b2a3aa;
+        }
+
+        input:focus {
+            border-color: var(--pink);
+            box-shadow: 0 0 0 3px rgba(217, 139, 167, 0.13);
+            background: white;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin: 4px 0 23px;
+            font-size: 11px;
+        }
+
+        .remember {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            color: var(--muted);
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .remember input {
+            accent-color: var(--pink-dark);
+        }
+
+        a {
+            color: var(--pink-dark);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .sign-in {
+            width: 100%;
+            min-height: 48px;
+            border: none;
+            border-radius: 11px;
+            background: var(--pink);
+            color: white;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .sign-in:hover {
+            background: var(--pink-dark);
+            transform: translateY(-1px);
+        }
+
+        .sign-in:disabled {
+            opacity: 0.7;
+            cursor: wait;
+            transform: none;
+        }
+
+        #message {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 9px;
+            background: var(--pink-light);
+            color: #86546b;
+            font-size: 12px;
+            line-height: 1.6;
+            text-align: center;
+        }
+
+        #message.error {
+            background: #fff0f0;
+            color: #a23c4a;
+        }
+
+        .switch-mode {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .switch-mode a {
+            margin-left: 4px;
+        }
+
+        .footer {
+            margin-top: 27px;
+            padding-top: 19px;
+            border-top: 1px solid #f0e7eb;
+            color: #a3949c;
+            text-align: center;
+            font-size: 11px;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 29px 23px;
+                border-radius: 18px;
+            }
+
+            h1 {
+                font-size: 28px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<main class="login-card">
+    <div class="brand">
+        <span class="brand-icon">✦</span>
+        <span>SKILLSTUDIO</span>
+    </div>
+
+    <h1 id="heading">Welcome back!</h1>
+
+    <p class="subtitle" id="subtitle">
+        Your future starts with the skills you build.
+        <br>Sign in and continue your journey.
+    </p>
+
+    <div class="student-label">
+        <span>🎓</span>
+        <span>Student Account</span>
+    </div>
+
+    <form id="authForm">
+        <div class="field" id="nameField" hidden>
+            <label for="name">Full name</label>
+            <input type="text" id="name" name="name"
+                   placeholder="Enter your full name"
+                   minlength="2" maxlength="80"
+                   autocomplete="name">
+        </div>
+
+        <div class="field">
+            <label for="email">Email address</label>
+            <input type="email" id="email" name="email"
+                   placeholder="you@example.com"
+                   autocomplete="username" required>
+        </div>
+
+        <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password"
+                   placeholder="Enter your password"
+                   minlength="8" maxlength="128"
+                   autocomplete="current-password" required>
+        </div>
+
+        <div class="form-options" id="loginOptions">
+            <label class="remember">
+                <input type="checkbox" id="remember">
+                Remember me
+            </label>
+            <a href="#" id="forgotLink">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="sign-in" id="submitButton">
+            Sign in to SkillStudio
+        </button>
+
+        <div id="message" role="status" aria-live="polite"></div>
+    </form>
+
+    <div class="switch-mode">
+        <span id="switchText">New to SkillStudio?</span>
+        <a href="#" id="switchLink">Create an account</a>
+    </div>
+
+    <div class="footer">
+        Build your skills. Shape your future.
+        <br>&copy; 2026 SkillStudio
+    </div>
+</main>
+
+<script>
+    const authForm = document.getElementById("authForm");
+    const message = document.getElementById("message");
+    const nameField = document.getElementById("nameField");
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const heading = document.getElementById("heading");
+    const subtitle = document.getElementById("subtitle");
+    const submitButton = document.getElementById("submitButton");
+    const loginOptions = document.getElementById("loginOptions");
+    const switchText = document.getElementById("switchText");
+    const switchLink = document.getElementById("switchLink");
+
+    let isRegisterMode = false;
+
+    function showMessage(text, isError = false) {
+        message.textContent = text;
+        message.classList.toggle("error", isError);
+        message.style.display = "block";
+    }
+
+    function setMode(registerMode) {
+        isRegisterMode = registerMode;
+        message.style.display = "none";
+
+        nameField.hidden = !registerMode;
+        nameInput.required = registerMode;
+        loginOptions.hidden = registerMode;
+
+        heading.textContent = registerMode
+            ? "Create your account"
+            : "Welcome back!";
+
+        subtitle.innerHTML = registerMode
+            ? "Start building your skills and shaping your future."
+            : "Your future starts with the skills you build.<br>Sign in and continue your journey.";
+
+        submitButton.textContent = registerMode
+            ? "Create student account"
+            : "Sign in to SkillStudio";
+
+        switchText.textContent = registerMode
+            ? "Already have an account?"
+            : "New to SkillStudio?";
+
+        switchLink.textContent = registerMode
+            ? "Sign in"
+            : "Create an account";
+
+        passwordInput.autocomplete = registerMode
+            ? "new-password"
+            : "current-password";
+
+        passwordInput.value = "";
+    }
+
+    switchLink.addEventListener("click", function(event) {
+        event.preventDefault();
+        setMode(!isRegisterMode);
+    });
+
+    document.getElementById("forgotLink").addEventListener("click", function(event) {
+        event.preventDefault();
+
+        showMessage(
+            "Password recovery is not available yet. Please contact the administrator if you cannot sign in."
+        );
+    });
+
+    authForm.addEventListener("submit", async function(event) {
+        event.preventDefault();
+
+        message.style.display = "none";
+        submitButton.disabled = true;
+
+        const payload = {
+            email: emailInput.value.trim(),
+            password: passwordInput.value
+        };
+
+        if (isRegisterMode) {
+            payload.name = nameInput.value.trim();
+        }
+
+        try {
+            const endpoint = isRegisterMode
+                ? "/auth/register"
+                : "/auth/login";
+
+            const response = await fetch(endpoint, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                credentials: "same-origin",
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                let errorText = data.detail ||
+                    "Something went wrong. Please try again.";
+
+                if (Array.isArray(errorText)) {
+                    errorText = errorText
+                        .map(item => item.msg)
+                        .join(" ");
+                }
+
+                showMessage(String(errorText), true);
+                return;
+            }
+
+            showMessage(
+                isRegisterMode
+                    ? "Account created successfully! Opening dashboard..."
+                    : "Login successful! Opening dashboard..."
+            );
+
+            // Redirect only after the server confirms success.
+            window.location.assign("/dashboard.html");
+
+        } catch (error) {
+            showMessage(
+                "Could not connect to SkillStudio. Make sure the backend is running and open this page at http://127.0.0.1:8000/login.html.",
+                true
+            );
+        } finally {
+            submitButton.disabled = false;
+        }
+    });
+
+    /*
+      Important:
+      Do not automatically redirect from this page based on /auth/me.
+      The login page should remain visible until the student submits
+      the login or registration form.
+    */
+
+    setMode(false);
+</script>
+</body>
+</html>
+```
