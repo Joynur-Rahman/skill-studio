@@ -1,23 +1,32 @@
 # SkillStudio - Student Assessment & Placement Readiness Platform
 
-SkillStudio is an end-to-end web platform designed to assess student technical competencies, analyze placement readiness, recommend relevant job roles, and provide targeted practice assessments.
+SkillStudio is an end-to-end web platform designed to assess student technical competencies, analyze placement readiness, recommend relevant job roles, and provide targeted practice assessments. Developed as part of an advanced academic project at IIIT Guwahati.
 
 ---
 
 ## 🌟 Key Features
 
-- **Placement Readiness Analysis**: Comprehensive readiness scoring based on student profile attributes, academic performance, project experience, and technical skill assessments.
+- **Placement Readiness Analysis**: Comprehensive readiness scoring backed by trained machine learning models (`scikit-learn`).
 - **Adaptive Question Bank & Assessments**: Timed interactive assessments with topic-specific questions and automatic score calculation.
 - **Practice Arena**: Topic-wise practice modules allowing students to prepare across various core subjects.
-- **Job Matching & Recommendations**: Intelligent matching between candidate profiles and job datasets (`job_dataset.csv`).
+- **Job Matching & Recommendations**: Intelligent semantic matching between candidate profiles and job datasets (`job_dataset.csv`).
 - **Interactive Dashboards**: Visual analytics, attempt histories, and performance tracking.
+
+---
+
+## 🤖 Machine Learning & Intelligence
+
+- **Core Algorithm**: Gradient Boosting Classifier optimized with hyperparameter tuning.
+- **Performance**: Achieves a verified **89.08% classification accuracy** on student placement records.
+- **Serialization**: Models are stored and loaded dynamically via `joblib` / `.pkl` serialization artifacts.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Python 3.10+, [FastAPI](https://fastapi.tiangolo.com/), [Pydantic](https://docs.pydantic.dev/), Starlette
-- **Database & Data**: SQLite, [Pandas](https://pandas.pydata.org/)
+- **Backend**: Python 3.10+, [FastAPI](https://fastapi.tiangolo.com/), [Pydantic](https://docs.pydantic.dev/)
+- **Machine Learning**: [scikit-learn](https://scikit-learn.org/), [Pandas](https://pandas.pydata.org/), NumPy
+- **Database**: SQLite
 - **Frontend**: HTML5, modern CSS, Vanilla JavaScript (REST API integration)
 
 ---
@@ -84,9 +93,22 @@ Once running, access the web pages in your browser:
 
 ---
 
-## 👤 Authors
+## 👤 Authors & Contributors
 
 - **Snehanjali Sahu** ([sneha03anjali@gmail.com](mailto:sneha03anjali@gmail.com))
 - **Shramana Mukherjee** ([shrawmana@gmail.com](mailto:shrawmana@gmail.com))
 - **Pratiksha Sarma** ([pratikshasarma40@gmail.com](mailto:pratikshasarma40@gmail.com))
 - **Amisha Kalita** ([amishakalita380@gmail.com](mailto:amishakalita380@gmail.com))
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🎓 Acknowledgments & Institution
+
+- **Department of Computer Science & Engineering**, Indian Institute of Information Technology Guwahati (IIIT Guwahati).
+- Special thanks to our academic supervisor Mr. Nilotpal Chakraborty for their guidance during the design, development, and evaluation of **SkillStudio**.
