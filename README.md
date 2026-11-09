@@ -86,7 +86,7 @@ Once running, access the web pages in your browser:
 
 ## 👤 Author
 
--**Snehanjali Sahu** ([sneha03anjali@gmail.com](mailto:sneha03anjali@gmail.com))
+- **Snehanjali Sahu** ([sneha03anjali@gmail.com](mailto:sneha03anjali@gmail.com))
 -
 -
 - **Amisha Kalita** ([amishakalita380@gmail.com](mailto:amishakalita380@gmail.com))
