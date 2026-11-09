@@ -84,9 +84,9 @@ Once running, access the web pages in your browser:
 
 ---
 
-## 👤 Author
+## 👤 Authors
 
 - **Snehanjali Sahu** ([sneha03anjali@gmail.com](mailto:sneha03anjali@gmail.com))
--
--
+- **Shramana Mukherjee** ([shrawmana@gmail.com](mailto:shrawmana@gmail.com))
+- **Pratiksha Sarma** ([pratikshasarma40@gmail.com](mailto:pratikshasarma40@gmail.com))
 - **Amisha Kalita** ([amishakalita380@gmail.com](mailto:amishakalita380@gmail.com))
