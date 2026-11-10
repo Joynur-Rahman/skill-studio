@@ -75,13 +75,20 @@
 </head>
 
 <body>
+    <nav style="display:flex;gap:10px;flex-wrap:wrap;margin:15px 0 25px;">
+        <a href="/dashboard.html" style="color:#244b8a;background:white;border:1px solid #c8d7ea;border-radius:8px;padding:8px 14px;text-decoration:none;font-weight:600;">Dashboard</a>
+        <a href="/index.html" style="color:#244b8a;background:#e9f0fa;border:1px solid #244b8a;border-radius:8px;padding:8px 14px;text-decoration:none;font-weight:700;">Employability Assessment</a>
+        <a href="/placement.html" style="color:#244b8a;background:white;border:1px solid #c8d7ea;border-radius:8px;padding:8px 14px;text-decoration:none;font-weight:600;">Placement Readiness</a>
+        <a href="/practice.html" style="color:#244b8a;background:white;border:1px solid #c8d7ea;border-radius:8px;padding:8px 14px;text-decoration:none;font-weight:600;">Topic Practice</a>
+    </nav>
     <h1>Employability Assessment</h1>
     <p>Answer 10 questions to discover your strengths and areas for improvement.</p>
 
     <section class="card" id="startCard">
         <h2>Start assessment</h2>
-        <label for="studentId">Student ID:</label><br><br>
-        <input type="text" id="studentId" placeholder="Enter your student ID">
+        <div id="userBadge" style="margin-bottom:12px;color:#244b8a;font-weight:bold;"></div>
+        <label for="studentId">Student ID / Candidate Name:</label><br><br>
+        <input type="text" id="studentId" placeholder="Enter your student ID or name">
         <br>
         <button id="startButton" onclick="startAssessment()">
             Start assessment
@@ -130,7 +137,7 @@
     </section>
 
     <script>
-        const API = "http://127.0.0.1:8000";
+        const API = window.location.origin;
 
         let attemptId = null;
         let questions = [];
@@ -159,6 +166,7 @@
                 const response = await fetch(`${API}/assessment/start`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
+                    credentials: "include",
                     body: JSON.stringify({ student_id: studentId })
                 });
 
@@ -272,6 +280,7 @@
                         const response = await fetch(`${API}/assessment/answer`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
+                            credentials: "include",
                             body: JSON.stringify({
                                 attempt_id: attemptId,
                                 question_id: q.id,
@@ -287,7 +296,7 @@
 
                 const response = await fetch(
                     `${API}/assessment/finish/${attemptId}`,
-                    { method: "POST" }
+                    { method: "POST", credentials: "include" }
                 );
 
                 const result = await response.json();
@@ -358,6 +367,26 @@
             li.textContent = text;
             list.appendChild(li);
         }
+
+        // Auto-detect logged in user and pre-fill student ID
+        window.addEventListener("DOMContentLoaded", async () => {
+            try {
+                const resp = await fetch(`${API}/auth/me`, { credentials: "include" });
+                if (resp.ok) {
+                    const user = await resp.json();
+                    const input = document.getElementById("studentId");
+                    if (input && !input.value) {
+                        input.value = user.name || `Student #${user.id}`;
+                    }
+                    const badge = document.getElementById("userBadge");
+                    if (badge) {
+                        badge.textContent = `👤 Signed in as: ${user.name} (${user.email})`;
+                    }
+                }
+            } catch (e) {
+                // Not signed in; student can enter custom ID
+            }
+        });
     </script>
 </body>
 </html>

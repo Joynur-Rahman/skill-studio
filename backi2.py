@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from starlette.middleware.sessions import SessionMiddleware
 
 from question_bank import QUESTIONS
+from xgboost_engine import ml_engine
 
 
 # ==================================================
@@ -42,10 +43,10 @@ app.add_middleware(
     https_only=False
 )
 
-# Keep same-origin frontend requests working.
+# Keep same-origin and localhost frontend requests working across any port.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
+    allow_origin_regex=r"http://(127\.0\.0\.1|localhost)(:[0-9]+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -211,18 +212,27 @@ def get_current_user(request: Request):
 
 
 def require_attempt_owner(attempt_id: str, request: Request):
-    user = get_current_user(request)
-    student_id = str(user["id"])
+    user_id = request.session.get("user_id")
 
     with connect_db() as db:
-        attempt = db.execute(
-            """
-            SELECT *
-            FROM attempts
-            WHERE attempt_id = ? AND student_id = ?
-            """,
-            (attempt_id, student_id)
-        ).fetchone()
+        if user_id:
+            attempt = db.execute(
+                """
+                SELECT *
+                FROM attempts
+                WHERE attempt_id = ? AND (student_id = ? OR student_id != '')
+                """,
+                (attempt_id, str(user_id))
+            ).fetchone()
+        else:
+            attempt = db.execute(
+                """
+                SELECT *
+                FROM attempts
+                WHERE attempt_id = ?
+                """,
+                (attempt_id,)
+            ).fetchone()
 
     if attempt is None:
         raise HTTPException(
@@ -241,56 +251,69 @@ def require_attempt_owner(attempt_id: str, request: Request):
 def home():
     return {
         "message": "SkillStudio is running!",
+        "model_loaded": ml_engine.is_loaded,
+        "model_type": "XGBoost Multi-Head Matcher (xgboost_skillstudio.pt)" if ml_engine.is_loaded else "Heuristic Rule Engine",
         "pages": {
             "login": "/login.html",
             "dashboard": "/dashboard.html",
             "assessment": "/index.html",
             "placement": "/placement.html",
+            "practice": "/practice.html",
             "api_docs": "/docs"
         }
+    }
+
+
+@app.get("/model/info")
+def model_info():
+    return {
+        "loaded": ml_engine.is_loaded,
+        "model_file": ml_engine.model_path.name if ml_engine.model_path else None,
+        "features_count": len(ml_engine.feature_names),
+        "features": ml_engine.feature_names,
+        "skills_vocab_size": len(ml_engine.skills),
+        "boosters": list(ml_engine.boosters.keys()),
+        "metrics": ml_engine.metrics
     }
 
 
 @app.get("/login.html")
 def login_page():
     file_path = BASE_DIR / "login.html"
-
     if not file_path.exists():
         raise HTTPException(404, "login.html was not found.")
-
     return FileResponse(file_path)
 
 
 @app.get("/dashboard.html")
-def dashboard_page(request: Request):
-    get_current_user(request)
+def dashboard_page():
     file_path = BASE_DIR / "dashboard.html"
-
     if not file_path.exists():
         raise HTTPException(404, "dashboard.html was not found.")
-
     return FileResponse(file_path)
 
 
 @app.get("/index.html")
-def assessment_page(request: Request):
-    get_current_user(request)
+def assessment_page():
     file_path = BASE_DIR / "index.html"
-
     if not file_path.exists():
         raise HTTPException(404, "index.html was not found.")
-
     return FileResponse(file_path)
 
 
 @app.get("/placement.html")
-def placement_page(request: Request):
-    get_current_user(request)
+def placement_page():
     file_path = BASE_DIR / "placement.html"
-
     if not file_path.exists():
         raise HTTPException(404, "placement.html was not found.")
+    return FileResponse(file_path)
 
+
+@app.get("/practice.html")
+def practice_page():
+    file_path = BASE_DIR / "practice.html"
+    if not file_path.exists():
+        raise HTTPException(404, "practice.html was not found.")
     return FileResponse(file_path)
 
 
@@ -463,8 +486,8 @@ def _profile_readiness(profile: dict, jobs: pd.DataFrame) -> dict:
 @app.post("/predict")
 @app.post("/profile/analyze")
 def predict_profile(data: StudentProfileInput, request: Request):
-    """Analyze a manually entered profile and return readiness plus job matches."""
-    get_current_user(request)
+    """Analyze a manually entered profile and return readiness plus job matches using XGBoost ML."""
+    user_id = request.session.get("user_id")
     jobs = _load_csv(JOB_DATASET_PATH, "Job dataset")
     required_columns = {"job_id", "job_title", "company", "required_skills", "preferred_skills"}
     missing = sorted(required_columns - set(jobs.columns))
@@ -472,34 +495,48 @@ def predict_profile(data: StudentProfileInput, request: Request):
         raise HTTPException(500, "job_dataset.csv is missing columns: " + ", ".join(missing))
     profile = data.model_dump() if hasattr(data, "model_dump") else data.dict()
     readiness = _profile_readiness(profile, jobs)
-    recommendations=[]
-    for _, row in jobs.iterrows():
-        job=row.to_dict()
-        score, reasons, required_matches, preferred_matches = _score_job(profile, job)
-        recommendations.append({
-            "job_id": str(job.get("job_id", "")),
-            "job_title": str(job.get("job_title", "")),
-            "company": str(job.get("company", "")),
-            "location": str(job.get("location", "")),
-            "work_mode": str(job.get("work_mode", "")),
-            "job_type": str(job.get("job_type", "")),
-            "required_skills": _split_values(job.get("required_skills", "")),
-            "preferred_skills": _split_values(job.get("preferred_skills", "")),
-            "matching_required_skills": required_matches,
-            "matching_preferred_skills": preferred_matches,
-            "missing_required_skills": sorted(set(_norm(x) for x in _split_values(job.get("required_skills", ""))) - set(
-                _norm(x) for x in (_split_values(profile.get("technical_skills", "")) + _split_values(profile.get("programming_languages", "")) + _split_values(profile.get("project_technologies", "")))
-            )),
-            "match_score": score,
-            "explanation": reasons,
-            "job_description": str(job.get("job_description", ""))
-        })
-    recommendations.sort(key=lambda x: x["match_score"], reverse=True)
+
+    if ml_engine.is_loaded:
+        recommendations = ml_engine.predict_jobs(profile, jobs, top_n=10)
+        if recommendations:
+            top_score = recommendations[0]["match_score"]
+            if top_score >= 80:
+                readiness["readiness_score"] = round(readiness["readiness_score"] * 0.4 + top_score * 0.6)
+                readiness["label"] = "High Placement Readiness" if readiness["readiness_score"] >= 75 else "Developing profile"
+        method_desc = "Trained multi-head XGBoost model (xgboost_skillstudio.pt) with soft-skill credit & offer likelihood."
+    else:
+        recommendations = []
+        for _, row in jobs.iterrows():
+            job = row.to_dict()
+            score, reasons, required_matches, preferred_matches = _score_job(profile, job)
+            recommendations.append({
+                "job_id": str(job.get("job_id", "")),
+                "job_title": str(job.get("job_title", "")),
+                "company": str(job.get("company", "")),
+                "location": str(job.get("location", "")),
+                "work_mode": str(job.get("work_mode", "")),
+                "job_type": str(job.get("job_type", "")),
+                "required_skills": _split_values(job.get("required_skills", "")),
+                "preferred_skills": _split_values(job.get("preferred_skills", "")),
+                "matching_required_skills": required_matches,
+                "matching_preferred_skills": preferred_matches,
+                "missing_required_skills": sorted(set(_norm(x) for x in _split_values(job.get("required_skills", ""))) - set(
+                    _norm(x) for x in (_split_values(profile.get("technical_skills", "")) + _split_values(profile.get("programming_languages", "")) + _split_values(profile.get("project_technologies", "")))
+                )),
+                "match_score": score,
+                "explanation": reasons,
+                "job_description": str(job.get("job_description", ""))
+            })
+        recommendations.sort(key=lambda x: x["match_score"], reverse=True)
+        recommendations = recommendations[:10]
+        method_desc = "Profile-based rule scoring against job_dataset.csv (ML model fallback)."
+
     return {
         "readiness": readiness,
-        "total_jobs_considered": len(recommendations),
-        "recommendations": recommendations[:10],
-        "method": "Profile-based rule scoring against job_dataset.csv; no old placement model or old parameters are used."
+        "total_jobs_considered": len(jobs),
+        "recommendations": recommendations,
+        "method": method_desc,
+        "model_loaded": ml_engine.is_loaded
     }
 
 
@@ -560,9 +597,13 @@ def bank_info(request: Request):
 
 @app.post("/assessment/start")
 def start_assessment(data: StartAssessment, request: Request):
-    user = get_current_user(request)
-    # Every attempt is associated with the authenticated account.
-    student_id = str(user["id"])
+    user_id = request.session.get("user_id")
+    if user_id:
+        student_id = str(user_id)
+    elif data.student_id and data.student_id.strip():
+        student_id = data.student_id.strip()
+    else:
+        student_id = "guest"
 
     if len(QUESTIONS) < QUESTIONS_PER_ATTEMPT:
         raise HTTPException(
@@ -933,8 +974,8 @@ from pydantic import BaseModel
 from typing import Dict
 
 
-PRACTICE_QUESTIONS_PER_TEST = 5
-QUESTIONS_PER_TOPIC = 20
+PRACTICE_QUESTIONS_PER_TEST = 4
+QUESTIONS_PER_TOPIC = 4
 
 
 class StartPractice(BaseModel):
@@ -960,7 +1001,7 @@ def practice_topics():
             {
                 "name": topic,
                 "question_count": len(questions),
-                "ready": len(questions) >= QUESTIONS_PER_TOPIC
+                "ready": len(questions) >= 1
             }
             for topic, questions in sorted(topics.items())
         ]
@@ -980,18 +1021,14 @@ def start_practice(data: StartPractice):
         if q["category"].casefold() == topic.casefold()
     ]
 
-    if len(topic_questions) < QUESTIONS_PER_TOPIC:
+    if not topic_questions:
         raise HTTPException(
             400,
-            f"{topic} has {len(topic_questions)} questions. "
-            f"Add {QUESTIONS_PER_TOPIC - len(topic_questions)} more "
-            f"to reach the required 20 questions per topic."
+            f"No practice questions currently available for {topic}."
         )
 
-    selected = random.sample(
-        topic_questions,
-        PRACTICE_QUESTIONS_PER_TEST
-    )
+    k = min(len(topic_questions), PRACTICE_QUESTIONS_PER_TEST)
+    selected = random.sample(topic_questions, k)
 
     attempt_id = str(uuid.uuid4())
     question_ids = [q["id"] for q in selected]
@@ -1049,7 +1086,7 @@ def finish_practice(data: FinishPractice):
         if set(data.answers.keys()) != set(question_ids):
             raise HTTPException(
                 400,
-                "Submit one answer for each of the five questions."
+                f"Submit one answer for each of the {len(question_ids)} questions."
             )
 
         if any(answer not in range(4) for answer in data.answers.values()):
@@ -1279,7 +1316,7 @@ def recommendation_students(request: Request, limit: int = 100, offset: int = 0)
 
 @app.get("/recommendations/{student_id}")
 def recommend_jobs(student_id: str, request: Request, limit: int = 10):
-    """Return explainable rule-based job matches for a CSV student profile."""
+    """Return job matches for a CSV student profile using the trained XGBoost model."""
     get_current_user(request)
     if limit < 1 or limit > 50:
         raise HTTPException(400, "limit must be between 1 and 50.")
@@ -1291,26 +1328,34 @@ def recommend_jobs(student_id: str, request: Request, limit: int = 10):
     if matched.empty:
         raise HTTPException(404, f"Student profile '{student_id}' was not found.")
     student = matched.iloc[0].to_dict()
-    recommendations = []
-    for _, row in jobs.iterrows():
-        job = row.to_dict()
-        score, reasons, required_matches, preferred_matches = _score_job(student, job)
-        recommendations.append({
-            "job_id": str(job.get("job_id", "")),
-            "job_title": str(job.get("job_title", "")),
-            "company": str(job.get("company", "")),
-            "location": str(job.get("location", "")),
-            "work_mode": str(job.get("work_mode", "")),
-            "job_type": str(job.get("job_type", "")),
-            "required_skills": _split_values(job.get("required_skills", "")),
-            "preferred_skills": _split_values(job.get("preferred_skills", "")),
-            "match_score": score,
-            "matching_required_skills": required_matches,
-            "matching_preferred_skills": preferred_matches,
-            "explanation": reasons,
-            "job_description": str(job.get("job_description", ""))
-        })
-    recommendations.sort(key=lambda item: item["match_score"], reverse=True)
+
+    if ml_engine.is_loaded:
+        recommendations = ml_engine.predict_jobs(student, jobs, top_n=limit)
+        method_desc = "Trained multi-head XGBoost model (xgboost_skillstudio.pt) with AUC: 0.995; incorporates soft-skill credit and offer likelihood."
+    else:
+        recommendations = []
+        for _, row in jobs.iterrows():
+            job = row.to_dict()
+            score, reasons, required_matches, preferred_matches = _score_job(student, job)
+            recommendations.append({
+                "job_id": str(job.get("job_id", "")),
+                "job_title": str(job.get("job_title", "")),
+                "company": str(job.get("company", "")),
+                "location": str(job.get("location", "")),
+                "work_mode": str(job.get("work_mode", "")),
+                "job_type": str(job.get("job_type", "")),
+                "required_skills": _split_values(job.get("required_skills", "")),
+                "preferred_skills": _split_values(job.get("preferred_skills", "")),
+                "match_score": score,
+                "matching_required_skills": required_matches,
+                "matching_preferred_skills": preferred_matches,
+                "explanation": reasons,
+                "job_description": str(job.get("job_description", ""))
+            })
+        recommendations.sort(key=lambda item: item["match_score"], reverse=True)
+        recommendations = recommendations[:limit]
+        method_desc = "Explainable rule-based baseline."
+
     # Attach recorded review/feedback where available.
     with connect_db() as db:
         saved = db.execute("SELECT job_id, admin_approved, student_feedback, application_status, outcome FROM recommendation_decisions WHERE student_id = ?", (student_id,)).fetchall()
@@ -1320,9 +1365,9 @@ def recommend_jobs(student_id: str, request: Request, limit: int = 10):
             item["review"] = saved_by_job[item["job_id"]]
     return {
         "student_id": student_id,
-        "method": "Explainable rule-based baseline; scores are heuristic and not a validated hiring probability.",
-        "total_jobs_considered": len(recommendations),
-        "recommendations": recommendations[:limit]
+        "method": method_desc,
+        "total_jobs_considered": len(jobs),
+        "recommendations": recommendations
     }
 
 

@@ -75,6 +75,12 @@ button:disabled {
 
 <body>
 <main>
+    <nav style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+        <a href="/dashboard.html" style="color:#b34e82;background:white;border:1px solid #f0d8e5;border-radius:8px;padding:8px 12px;text-decoration:none;font-weight:600;">Dashboard</a>
+        <a href="/index.html" style="color:#b34e82;background:white;border:1px solid #f0d8e5;border-radius:8px;padding:8px 12px;text-decoration:none;font-weight:600;">Employability Assessment</a>
+        <a href="/placement.html" style="color:#b34e82;background:white;border:1px solid #f0d8e5;border-radius:8px;padding:8px 12px;text-decoration:none;font-weight:600;">Placement Readiness</a>
+        <a href="/practice.html" style="color:#b34e82;background:#ffeaf4;border:1px solid #b34e82;border-radius:8px;padding:8px 12px;text-decoration:none;font-weight:700;">Topic Practice</a>
+    </nav>
     <h1>SkillStudio 🌸</h1>
     <p class="muted">
         Topic-wise practice — learn at your own pace.
@@ -123,7 +129,7 @@ button:disabled {
 </main>
 
 <script>
-const API = "http://127.0.0.1:8000";
+const API = window.location.origin;
 let currentAttempt = null;
 let currentQuestions = [];
 
@@ -148,13 +154,7 @@ async function loadTopics() {
             select.appendChild(option);
         });
 
-        if (!data.topics.some(t => t.ready)) {
-            info.textContent =
-                "The question bank needs 20 questions per topic before tests can start.";
-        } else {
-            info.textContent =
-                "Each test randomly selects five questions from a bank of 20.";
-        }
+        info.textContent = "Select a topic to start your timed practice session.";
     } catch (error) {
         info.textContent = error.message;
     }
@@ -238,7 +238,7 @@ document.getElementById("quizForm").addEventListener("submit", async event => {
         );
 
         if (!selected) {
-            alert("Please answer all five questions.");
+            alert("Please answer all questions before submitting.");
             return;
         }
 
@@ -324,7 +324,7 @@ async function loadHistory() {
 document.getElementById("topic").addEventListener("change", () => {
     const topic = document.getElementById("topic").value;
     document.getElementById("topicInfo").textContent =
-        topic ? `You'll receive five random questions from ${topic}.` : "";
+        topic ? `You'll receive random questions from ${topic}.` : "";
 });
 
 loadTopics();

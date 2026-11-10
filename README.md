@@ -61,16 +61,25 @@ pip install -r requirements.txt
 ### 4. Run the Application
 
 ```bash
-uvicorn backi2:app --reload --port 8000
+uvicorn backi2:app --reload --host 127.0.0.1 --port 8080
 ```
 
 Once running, access the web pages in your browser:
-- **Login / Register**: `http://127.0.0.1:8000/login.html`
-- **Dashboard**: `http://127.0.0.1:8000/dashboard.html`
-- **Assessment**: `http://127.0.0.1:8000/index.html`
-- **Placement Analysis**: `http://127.0.0.1:8000/placement.html`
-- **Practice Arena**: `http://127.0.0.1:8000/practice.html`
-- **Interactive API Documentation (Swagger UI)**: `http://127.0.0.1:8000/docs`
+- **Login / Register**: `http://127.0.0.1:8080/login.html`
+- **Dashboard**: `http://127.0.0.1:8080/dashboard.html`
+- **Assessment**: `http://127.0.0.1:8080/index.html`
+- **Placement Analysis**: `http://127.0.0.1:8080/placement.html`
+- **Practice Arena**: `http://127.0.0.1:8080/practice.html`
+- **Model Info**: `http://127.0.0.1:8080/model/info`
+- **Interactive API Documentation (Swagger UI)**: `http://127.0.0.1:8080/docs`
+
+> **Note**: Port `8080` is used by default to prevent port conflicts with Docker / WSL services running on port `8000`.
+
+### 5. Run the Automated Health Test Suite
+
+```bash
+python test_system.py
+```
 
 ---
 

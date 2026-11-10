@@ -458,7 +458,7 @@
 
         } catch (error) {
             showMessage(
-                "Could not connect to SkillStudio. Make sure the backend is running and open this page at http://127.0.0.1:8000/login.html.",
+                `Could not connect to SkillStudio. Make sure the backend is running and open this page at ${window.location.origin}/login.html.`,
                 true
             );
         } finally {
